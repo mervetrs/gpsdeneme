@@ -10,7 +10,14 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -19,39 +26,32 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MainActivity extends AppCompatActivity {
-    private GoogleMap googleMap;
+public class MainActivity extends FragmentActivity {
+    private GoogleMap googleHarita;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (googleMap == null) {
-            googleMap = ((MapFragment) getFragmentManager().findFragmentById(
-                    R.id.map)).getMap();
-            if (googleMap == null) {
-                Toast.makeText(getApplicationContext(),
-                        "Harita oluşturulamadı.", Toast.LENGTH_SHORT)
-                        .show();
+        if (googleHarita == null) {
+            googleHarita = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(
+                    R.id.haritafragment)).getMap();
+            if (googleHarita != null) {
+                googleHarita.setMyLocationEnabled(true);
+                googleHarita.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+                    @Override
+                    public void onMyLocationChange(Location location) {
+                        double latitude = location.getLatitude();
+                        double longitude = location.getLongitude();
+                        LatLng konum = new LatLng(latitude, longitude);
+                        googleHarita.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude)).title("Konumum"));
+                        googleHarita.moveCamera(CameraUpdateFactory.newLatLngZoom(konum, 13));
+                        googleHarita.setOnMyLocationChangeListener(null);
+                    }
+                });
             }
-            googleMap.setMyLocationEnabled(true);
-            googleMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
-                @Override
-                public void onMyLocationChange(Location location) {
-                    double latitude = location.getLatitude();
-                    double longitude = location.getLongitude();
-                    LatLng latLng = new LatLng(latitude, longitude);
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
-                    MarkerOptions marker = new MarkerOptions().position(new LatLng(latitude, longitude)).title("Konumum");
-                    googleMap.addMarker(marker);
-                    marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                    googleMap.setOnMyLocationChangeListener(null);
-                }
-            });
+
 
         }
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
